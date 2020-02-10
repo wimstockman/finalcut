@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 
+#include "final/fapplication.h"
 #include "final/fc.h"
 #include "final/fcharmap.h"
 #include "final/fcolorpalette.h"
@@ -118,7 +119,7 @@ FTerm::~FTerm()  // destructor
 //----------------------------------------------------------------------
 std::size_t FTerm::getLineNumber()
 {
-  auto& term_geometry = data->getTermGeometry();
+  const auto& term_geometry = data->getTermGeometry();
 
   if ( term_geometry.getHeight() == 0 )
     detectTermSize();
@@ -129,7 +130,7 @@ std::size_t FTerm::getLineNumber()
 //----------------------------------------------------------------------
 std::size_t FTerm::getColumnNumber()
 {
-  auto& term_geometry = data->getTermGeometry();
+  const auto& term_geometry = data->getTermGeometry();
 
   if ( term_geometry.getWidth() == 0 )
     detectTermSize();
@@ -808,7 +809,7 @@ int FTerm::closeConsole()
   if ( ! data )
     data = FTerm::getFTermData();
 
-  int fd = data->getTTYFileDescriptor();
+  const int fd = data->getTTYFileDescriptor();
   int ret{-1};
 
   if ( fd < 0 )  // console is already closed
@@ -981,9 +982,9 @@ void FTerm::setPalette (FColor index, int r, int g, int b)
   {
     const char* color_str{};
 
-    int rr = (r * 1001) / 256
-      , gg = (g * 1001) / 256
-      , bb = (b * 1001) / 256;
+    const int rr = (r * 1001) / 256;
+    const int gg = (g * 1001) / 256;
+    const int bb = (b * 1001) / 256;
 
     if ( Ic )
       color_str = tparm(Ic, index, rr, gg, bb, 0, 0, 0, 0, 0);
@@ -1113,9 +1114,9 @@ fc::encoding FTerm::getEncoding()
 //----------------------------------------------------------------------
 std::string FTerm::getEncodingString()
 {
-  auto term_encoding = data->getTermEncoding();
-  auto& encoding_list = data->getEncodingList();
-  auto end = encoding_list.end();
+  const auto& term_encoding = data->getTermEncoding();
+  const auto& encoding_list = data->getEncodingList();
+  const auto& end = encoding_list.end();
 
   for (auto it = encoding_list.begin(); it != end; ++it )
     if ( it->second == term_encoding )
@@ -1127,7 +1128,7 @@ std::string FTerm::getEncodingString()
 //----------------------------------------------------------------------
 bool FTerm::charEncodable (wchar_t c)
 {
-  wchar_t ch = charEncode(c);
+  const wchar_t ch = charEncode(c);
   return bool(ch > 0 && ch != c);
 }
 
@@ -1333,7 +1334,7 @@ void FTerm::init_global_values (bool disable_alt_screen)
 void FTerm::init_terminal_device_path()
 {
   char termfilename[256]{};
-  int  stdout_no = FTermios::getStdOut();
+  const int stdout_no = FTermios::getStdOut();
 
   if ( ttyname_r(stdout_no, termfilename, sizeof(termfilename)) )
     termfilename[0] = '\0';
@@ -1378,8 +1379,8 @@ void FTerm::init_alt_charset()
     for (std::size_t n{0}; TCAP(fc::t_acs_chars)[n]; n += 2)
     {
       // insert the VT100 key/value pairs into a map
-      uChar p1 = uChar(TCAP(fc::t_acs_chars)[n]);
-      uChar p2 = uChar(TCAP(fc::t_acs_chars)[n + 1]);
+      const uChar p1 = uChar(TCAP(fc::t_acs_chars)[n]);
+      const uChar p2 = uChar(TCAP(fc::t_acs_chars)[n + 1]);
       vt100_alt_char[p1] = p2;
     }
   }
@@ -1393,17 +1394,17 @@ void FTerm::init_alt_charset()
   // Update array 'character' with discovered VT100 pairs
   for (std::size_t n{0}; n <= fc::lastKeyItem; n++ )
   {
-    uChar keyChar = uChar(fc::vt100_key_to_utf8[n][vt100_key]);
-    uChar altChar = uChar(vt100_alt_char[keyChar]);
-    uInt utf8char = uInt(fc::vt100_key_to_utf8[n][utf8_char]);
-    fc::encoding num{fc::NUM_OF_ENCODINGS};
+    const uChar keyChar = uChar(fc::vt100_key_to_utf8[n][vt100_key]);
+    const uChar altChar = uChar(vt100_alt_char[keyChar]);
+    const uInt utf8char = uInt(fc::vt100_key_to_utf8[n][utf8_char]);
+    const fc::encoding num{fc::NUM_OF_ENCODINGS};
 
     uInt* p = std::find ( fc::character[0]
                         , fc::character[fc::lastCharItem] + num
                         , utf8char );
     if ( p != fc::character[fc::lastCharItem] + num )  // found in character
     {
-      int item = int(std::distance(fc::character[0], p) / num);
+      const int item = int(std::distance(fc::character[0], p) / num);
 
       if ( altChar )                 // update alternate character set
         fc::character[item][fc::VT100] = altChar;
@@ -1751,7 +1752,7 @@ inline void FTerm::init_encoding_set()
 //----------------------------------------------------------------------
 void FTerm::init_term_encoding()
 {
-  int stdout_no = FTermios::getStdOut();
+  const int stdout_no = FTermios::getStdOut();
   const char* termtype = data->getTermType();
 
   if ( ! fsys )
@@ -1831,7 +1832,7 @@ void FTerm::init_tab_quirks()
   // on the terminal and does not move the cursor to the next tab stop
   // position
 
-  auto enc = data->getTermEncoding();
+  const auto& enc = data->getTermEncoding();
 
   if ( enc == fc::VT100 || enc == fc::PC )
   {
@@ -2211,24 +2212,9 @@ void FTerm::init (bool disable_alt_screen)
   allocationValues();
   init_global_values(disable_alt_screen);
 
-  // Initialize termios
-  FTermios::init();
-
-  // Get pathname of the terminal device
-  init_terminal_device_path();
-
-  // Initialize Linux or *BSD console
-  initOSspecifics();
-
-  // Save termios settings
-  FTermios::storeTTYsettings();
-
-  // Get output baud rate
-  initBaudRate();
-
-  // Terminal detection
-  term_detection->detect();
-  setTermType (term_detection->getTermType());
+  // Initialize the terminal
+  if ( ! init_terminal() )
+    return;
 
   // Set maximum number of colors for detected terminals
   init_fixed_max_color();
@@ -2313,6 +2299,49 @@ void FTerm::init (bool disable_alt_screen)
 }
 
 //----------------------------------------------------------------------
+bool FTerm::init_terminal()
+{
+  // Initialize termios
+  FTermios::init();
+
+  // Check if stdin is a tty
+  if ( ! fsys->isTTY(FTermios::getStdIn()) )
+  {
+    data->setExitMessage("FTerm: Standard input is not a TTY.");
+    FApplication::exit(EXIT_FAILURE);
+    return false;
+  }
+
+  // Get pathname of the terminal device
+  init_terminal_device_path();
+
+  // Initialize Linux or *BSD console
+  initOSspecifics();
+
+  // Save termios settings
+  try
+  {
+    FTermios::storeTTYsettings();
+  }
+  catch (const std::runtime_error& ex)
+  {
+    FString msg = "FTerm: " + FString(ex.what());
+    data->setExitMessage(msg);
+    FApplication::exit(EXIT_FAILURE);
+    return false;
+  }
+
+  // Get output baud rate
+  initBaudRate();
+
+  // Terminal detection
+  term_detection->detect();
+  setTermType (term_detection->getTermType());
+
+  return true;
+}
+
+//----------------------------------------------------------------------
 void FTerm::initOSspecifics()
 {
 #if defined(__linux__)
@@ -2362,8 +2391,8 @@ void FTerm::initTermspecifics()
 //----------------------------------------------------------------------
 void FTerm::initBaudRate()
 {
-  int stdout_no = FTermios::getStdOut();
-  uInt baud = FTermios::getBaudRate();
+  const int stdout_no = FTermios::getStdOut();
+  const uInt baud = FTermios::getBaudRate();
   data->setBaudrate(baud);
 
   if ( ! fsys )
