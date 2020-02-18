@@ -140,6 +140,15 @@ std::vector<std::string> processparameters(const int& argc, char** argv)
 	return readData(std::cin);
 	
 	}
+int init (int argc, char* argv[], std::vector<std::string> v)
+{
+
+	FApplication app(argc, argv,false);
+	QuickForm dialog(&app,v);
+	app.setMainWidget(&dialog);
+	dialog.show();
+	return app.exec();
+}
 
 int main (int argc, char* argv[])
 {
@@ -148,15 +157,14 @@ int main (int argc, char* argv[])
 	argc = 0;
 	argv = nullptr;
 	int fd_stdin{fileno(stdin)};
-	std::cerr<<fd_stdin<<"\n";
+	std::cerr<<fd_stdin<<"fd stdin \n";
 	close(fd_stdin);
 	fd_stdin = open("/dev/tty",O_RDWR);
-	std::cerr<<fd_stdin<<"\n";
-	FApplication app(argc, argv);
-	QuickForm dialog(&app,v);
-	app.setMainWidget(&dialog);
-	dialog.show();
-	return app.exec();
+	init(argc,argv,v);
+	std::cout<<"Hello Worldttt \n";
+
+	return 0 ;
+
 }
 
 
