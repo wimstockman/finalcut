@@ -18,10 +18,10 @@ class QuickForm : public FDialog
 			this->next_btn.setGeometry (FPoint((5),1), FSize(3, 1));
 			this->prev_btn.setGeometry (FPoint((1),1), FSize(3, 1));
 			init_records_tabel(data);
-			for_each(records_vctr.begin(),records_vctr.end(),[](std::string &s){ std::cerr<<s<<"lambda \n";});
-	this->prev_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_prev), nullptr);
-	this->next_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_next), nullptr);
-	this->quit_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_quit), nullptr);
+			//for_each(records_vctr.begin(),records_vctr.end(),[](std::string &s){ std::cerr<<s<<"lambda \n";});
+			this->prev_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_prev), nullptr);
+			this->next_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_next), nullptr);
+			this->quit_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_quit), nullptr);
 			this->total_records = data.size()-1 ;
 			std::cerr<<this->total_records<<"Total\n";
 			//this->create_FLineEdits(this->tokenize_record(records_vctr[active_record]));
@@ -67,11 +67,11 @@ class QuickForm : public FDialog
 		void update_record()
 		{
 			std::string a = "hello";
-		  for(int i=0;i<this->Fields_vctr.size();i++)
+			std::cerr<<"Active Record:"<<this->active_record<<" Fields vector:"<<this->Fields_vctr.size()<<"record tabel:"<<this->records_tabel[this->active_record].size()<<"\n";
+		  for(int i=0;i<this->records_tabel[this->active_record].size();i++)
 				{
-			this->records_tabel[this->active_record][0]=a;
-			 //records_tabel[this->active_record][i]=this->Fields_vctr[i]->getText().toString();
-			std::cerr<<this->Fields_vctr[i]->getText()<<i<<" : ";
+			this->records_tabel[this->active_record][i]=this->Fields_vctr[i]->getText().toString();
+			//std::cerr<<this->Fields_vctr[i]->getText()<<i<<" : ";
 			}
 		}
 		void cb_next (FWidget*, FDataPtr){
@@ -110,7 +110,7 @@ class QuickForm : public FDialog
 				std::cerr<<e.what();
 				this->quit();
 				}
-				
+	
 			this->redraw();
 			this->show();
 			
@@ -122,9 +122,7 @@ class QuickForm : public FDialog
 				this->Fields_vctr[i]->hide();
 
 				}
-			for(int i=0;i < this->Fields_vctr.size();i++){
-				this->Fields_vctr.pop_back();
-				} 
+			this->Fields_vctr.erase (Fields_vctr.begin(),Fields_vctr.end());
 
 			}
 };
