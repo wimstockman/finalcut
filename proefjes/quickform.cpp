@@ -17,16 +17,15 @@ class QuickForm : public FDialog
 			this->quit_btn.setGeometry (FPoint((this->getWidth()/2-5),(this->getHeight()-3)), FSize(10, 1));
 			this->next_btn.setGeometry (FPoint((5),1), FSize(3, 1));
 			this->prev_btn.setGeometry (FPoint((1),1), FSize(3, 1));
-			this->records_vctr = data;
+			init_records_tabel(data);
 			for_each(records_vctr.begin(),records_vctr.end(),[](std::string &s){ std::cerr<<s<<"lambda \n";});
-			for (int i=0;i<data.size();i++)
-				std::cerr<<data[i]<<i<<"object\n";		
-			
 	this->prev_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_prev), nullptr);
 	this->next_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_next), nullptr);
 	this->quit_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_quit), nullptr);
-			this->total_records = (records_vctr.size()-1);
-			this->create_FLineEdits(this->tokenize_record(records_vctr[active_record]));
+			this->total_records = data.size()-1 ;
+			std::cerr<<this->total_records<<"Total\n";
+			//this->create_FLineEdits(this->tokenize_record(records_vctr[active_record]));
+			this->create_FLineEdits(this->records_tabel[this->active_record]);
 		}
 	private:
 		int posx = 1;
@@ -39,6 +38,7 @@ class QuickForm : public FDialog
 		int form_height	= 40;
 		int active_record = 0;
 		int total_records = 0;
+		std::regex delim_re{"\\s+"};
 		
 		//Create Buttons
 		FButton quit_btn{"&Quit", this};
@@ -48,28 +48,44 @@ class QuickForm : public FDialog
 		//Declare Vector to hold the fields
 		std::vector<FLineEdit*> Fields_vctr;
 		std::vector<std::string> records_vctr;
-		
-		std::vector<std::string>tokenize_record(std::string record)
+		std::vector<std::vector<std::string> > records_tabel;
+
+		void init_records_tabel(std::vector<std::string> data)
 		{
-		  const std::regex delim_re("\\s+");
-		  return std::vector<std::string> {std::sregex_token_iterator{record.begin(),record.end(),delim_re,-1},std::sregex_token_iterator{}};
+		for(int i=0;i<data.size();i++)
+			{
+			std::vector<std::string> v {std::sregex_token_iterator{data[i].begin(),data[i].end(),delim_re,-1},std::sregex_token_iterator{}};
+			this->records_tabel.push_back(v);
+			}
+			
 		}
 
 		void cb_quit (FWidget*, FDataPtr)
 		{
 			this->quit();
 		}
-
+		void update_record()
+		{
+			std::string a = "hello";
+		  for(int i=0;i<this->Fields_vctr.size();i++)
+				{
+			this->records_tabel[this->active_record][0]=a;
+			 //records_tabel[this->active_record][i]=this->Fields_vctr[i]->getText().toString();
+			std::cerr<<this->Fields_vctr[i]->getText()<<i<<" : ";
+			}
+		}
 		void cb_next (FWidget*, FDataPtr){
+			this->update_record();
 			if (this->active_record < this->total_records)	this->active_record++;
 			this->clear_FLineEdits();
-			this->create_FLineEdits(this->tokenize_record(records_vctr[active_record]));
+			this->create_FLineEdits(this->records_tabel[this->active_record]);
 		}
 
 		void cb_prev (FWidget*, FDataPtr){
+			this->update_record();
 			if (this->active_record > 0)this->active_record--;
 			this->clear_FLineEdits();
-			this->create_FLineEdits(this->tokenize_record(records_vctr[active_record]));
+			this->create_FLineEdits(this->records_tabel[this->active_record]);
 		}
 
 		void create_FLineEdits(std::vector<std::string> record)
@@ -160,7 +176,11 @@ int main (int argc, char* argv[])
 	std::cerr<<fd_stdin<<"fd stdin \n";
 	close(fd_stdin);
 	fd_stdin = open("/dev/tty",O_RDWR);
+	int stdoutBack = dup(1);
+	close(1);
+	int output = open("/dev/tty",O_RDWR);
 	init(argc,argv,v);
+	dup2(stdoutBack,1);
 	std::cout<<"Hello Worldttt \n";
 
 	return 0 ;
