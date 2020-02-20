@@ -21,11 +21,7 @@ class QuickForm : public FDialog
 			this->data->push_back("Tester");
 
 			init_records_tabel(data);
-<<<<<<< HEAD
 //			for_each(records_vctr.begin(),records_vctr.end(),[](std::string &s){ std::cerr<<s<<"lambda \n";});
-=======
-			//for_each(records_vctr.begin(),records_vctr.end(),[](std::string &s){ std::cerr<<s<<"lambda \n";});
->>>>>>> 79c1561d031532d0bd227f41d2fb76f972ce2279
 			this->prev_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_prev), nullptr);
 			this->next_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_next), nullptr);
 			this->quit_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_quit), nullptr);
@@ -86,15 +82,10 @@ class QuickForm : public FDialog
 		void update_record()
 		{
 			std::string a = "hello";
-			std::cerr<<"Active Record:"<<this->active_record<<" Fields vector:"<<this->Fields_vctr.size()<<"record tabel:"<<this->records_tabel[this->active_record].size()<<"\n";
-		  for(int i=0;i<this->records_tabel[this->active_record].size();i++)
+		  for(int i=0;i<this->Fields_vctr.size();i++)
 				{
 			this->records_tabel[this->active_record][i]=this->Fields_vctr[i]->getText().toString();
-<<<<<<< HEAD
 			std::cerr<<this->Fields_vctr[i]->getText()<<i<<" : ";
-=======
-			//std::cerr<<this->Fields_vctr[i]->getText()<<i<<" : ";
->>>>>>> 79c1561d031532d0bd227f41d2fb76f972ce2279
 			}
 		}
 		void cb_next (FWidget*, FDataPtr){
@@ -133,7 +124,7 @@ class QuickForm : public FDialog
 				std::cerr<<e.what();
 				this->quit();
 				}
-	
+				
 			this->redraw();
 			this->show();
 			
@@ -144,12 +135,7 @@ class QuickForm : public FDialog
 					this->Fields_vctr[i]->clear();
 				this->Fields_vctr[i]->hide();
 				}
-<<<<<<< HEAD
 			 Fields_vctr.erase(Fields_vctr.begin(),Fields_vctr.end());
-=======
-			this->Fields_vctr.erase (Fields_vctr.begin(),Fields_vctr.end());
-
->>>>>>> 79c1561d031532d0bd227f41d2fb76f972ce2279
 			}
 };
 
