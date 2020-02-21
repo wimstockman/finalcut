@@ -14,11 +14,10 @@ class QuickForm : public FDialog
 			//create quickform
 			this->setText("QuickForm");
 			this->setGeometry (FPoint(1, 1), FSize(this->getDesktopWidth(), this->getDesktopHeight()));
-			this->quit_btn.setGeometry (FPoint((this->getWidth()/2-5),(this->getHeight()-3)), FSize(10, 1));
+			this->quit_btn.setGeometry (FPoint((this->getWidth()/2-5),(this->getHeight()-3)), FSize(20, 1));
 			this->next_btn.setGeometry (FPoint((5),1), FSize(3, 1));
 			this->prev_btn.setGeometry (FPoint((1),1), FSize(3, 1));
 			this->data = &data;
-			this->data->push_back("Tester");
 
 			init_records_tabel(data);
 //			for_each(records_vctr.begin(),records_vctr.end(),[](std::string &s){ std::cerr<<s<<"lambda \n";});
@@ -26,9 +25,10 @@ class QuickForm : public FDialog
 			this->next_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_next), nullptr);
 			this->quit_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_quit), nullptr);
 			this->total_records = data.size()-1 ;
-			std::cerr<<this->total_records<<"Total\n";
+//			std::cerr<<this->total_records<<"Total\n";
 			//this->create_FLineEdits(this->tokenize_record(records_vctr[active_record]));
 			this->create_FLineEdits(this->records_tabel[this->active_record]);
+			this->data->push_back("Tester");
 		}
 	private:
 		int posx = 1;
@@ -42,7 +42,7 @@ class QuickForm : public FDialog
 		int active_record = 0;
 		int total_records = 0;
 		
-		char OFS = " ";
+		std::string OFS = " ";
 		std::regex delim_re{"\\s+"};
 		
 		//Create Buttons
@@ -67,25 +67,24 @@ class QuickForm : public FDialog
 
 		void cb_quit (FWidget*, FDataPtr)
 		{
-			
+			 data->erase(data->begin(),data->end());
 			for(int i=0;i<this->records_tabel.size();i++){
 					std::string helper="";
 				for(int j=0;j<this->records_tabel[i].size();j++)
 					{
-						helper+=this->records_tabel[i][j]<<OFS;
+					helper+=this->records_tabel[i][j]+OFS;
 					}
-				this->data[i] = helper;	
+			//std::cerr<<helper<<"\nHellaw\n";
+			this->data->push_back(helper);
 				}
-			for_each(records_vctr.begin(),records_vctr.end(),[](std::string &s){ std::cerr<<s<<"lambda \n";});
 			this->quit();
 		}
 		void update_record()
 		{
-			std::string a = "hello";
 		  for(int i=0;i<this->Fields_vctr.size();i++)
 				{
 			this->records_tabel[this->active_record][i]=this->Fields_vctr[i]->getText().toString();
-			std::cerr<<this->Fields_vctr[i]->getText()<<i<<" : ";
+//			std::cerr<<this->Fields_vctr[i]->getText()<<i<<" : ";
 			}
 		}
 		void cb_next (FWidget*, FDataPtr){
@@ -179,11 +178,11 @@ int init (int argc, char* argv[], std::vector<std::string>*v)
 int main (int argc, char* argv[])
 {
 	std::vector<std::string>v {};
-	v = processparameters(argc,argv); for (int i=0;i<v.size();i++) std::cerr<<v[i]<<i<<"vector\n";
+	v = processparameters(argc,argv); 
 	argc = 0;
 	argv = nullptr;
 	int fd_stdin{fileno(stdin)};
-	std::cerr<<fd_stdin<<"fd stdin \n";
+//	std::cerr<<fd_stdin<<"fd stdin \n";
 	close(fd_stdin);
 	fd_stdin = open("/dev/tty",O_RDWR);
 	int stdoutBack = dup(1);
@@ -191,7 +190,6 @@ int main (int argc, char* argv[])
 	int output = open("/dev/tty",O_RDWR);
 	init(argc,argv,&v);
 	dup2(stdoutBack,1);
-	std::cout<<"Hello Worldttt \n";
 	for_each(v.begin(),v.end(),[](std::string &s){ std::cout<<s<<"\n";});
 	return 0 ;
 
