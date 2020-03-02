@@ -14,21 +14,38 @@ class QuickForm : public FDialog
 			//create quickform
 			this->setText("QuickForm");
 			this->setGeometry (FPoint(1, 1), FSize(this->getDesktopWidth(), this->getDesktopHeight()));
-			this->quit_btn.setGeometry (FPoint((this->getWidth()/2-5),(this->getHeight()-3)), FSize(20, 1));
-			this->next_btn.setGeometry (FPoint((5),1), FSize(3, 1));
-			this->prev_btn.setGeometry (FPoint((1),1), FSize(3, 1));
+			
+			//create buttons
+			
+			this->exit_btn.setGeometry (FPoint((this->getWidth()/2-20),(this->getHeight()-3)), FSize(20, 1));
+			this->exit_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_exit), nullptr);
+			
+			this->save_and_exit_btn.setGeometry (FPoint((this->getWidth()/2+1),(this->getHeight()-3)), FSize(20, 1));
+			this->save_and_exit_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_save_and_exit), nullptr);
+			
+			
+			this->first_btn.setGeometry (FPoint((1),1), FSize(3, 1));
+			this->first_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_first), nullptr);
+			this->first_btn.setShadow(true);			
+			this->prev_btn.setGeometry (FPoint((5),1), FSize(3, 1));
+			this->prev_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_prev), nullptr);
+			this->prev_btn.setShadow(true);			
+			this->next_btn.setGeometry (FPoint((9),1), FSize(3, 1));
+			this->next_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_next), nullptr);
+			this->next_btn.setShadow(true);			
+			this->last_btn.setGeometry (FPoint((13),1), FSize(3, 1));
+			this->last_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_last), nullptr);
+			this->last_btn.setShadow(true);			
+			this->recnumber.setGeometry (FPoint((20),1), FSize(3, 1));
+			//get a reference to our original data so at the end we can change the data through this reference.
 			this->data = &data;
 
-			init_records_tabel(data);
-//			for_each(records_vctr.begin(),records_vctr.end(),[](std::string &s){ std::cerr<<s<<"lambda \n";});
-			this->prev_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_prev), nullptr);
-			this->next_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_next), nullptr);
-			this->quit_btn.addCallback("clicked", F_METHOD_CALLBACK (this,&QuickForm::cb_quit), nullptr);
-			this->total_records = data.size()-1 ;
-//			std::cerr<<this->total_records<<"Total\n";
-			//this->create_FLineEdits(this->tokenize_record(records_vctr[active_record]));
-			this->create_FLineEdits(this->records_tabel[this->active_record]);
-			this->data->push_back("Tester");
+			init_records_tabel(data); //initialise our table (split the strings and create records with fields)
+
+			this->total_records = data.size()-1 ; //get the total records for our record pointer
+
+			this->create_FLineEdits(this->records_tabel[this->active_record]);  //create the first record fields on the form
+			this->recnumber.setText(std::to_string(active_record)+"|"+std::to_string(total_records));
 		}
 	private:
 		int posx = 1;
@@ -42,19 +59,25 @@ class QuickForm : public FDialog
 		int active_record = 0;
 		int total_records = 0;
 		
+		int min_fieldsize = 10;
+		int max_fieldsize{form_width - 5};
 		std::string OFS = " ";
 		std::regex delim_re{"\\s+"};
 		
 		//Create Buttons
-		FButton quit_btn{"&Save en Quit", this};
+		FButton exit_btn{"&Quit", this};
+		FButton save_and_exit_btn{"&Save en Quit", this};
 		FButton prev_btn{fc::BlackLeftPointingTriangle, this};
+		FButton first_btn{fc::BlackLeftPointingPointer, this};
+		FButton last_btn{fc::BlackRightPointingPointer, this};
 		FButton next_btn{fc::BlackRightPointingTriangle, this};
-
+		FLabel recnumber{std::to_string(active_record)+"|"+std::to_string(total_records),this};
 		//Declare Vector to hold the fields
 		std::vector<FLineEdit*> Fields_vctr;
 		std::vector<std::string> records_vctr;
 		std::vector<std::vector<std::string> > records_tabel;
 		std::vector<std::string>* data; 
+		
 		void init_records_tabel(std::vector<std::string> data)
 		{
 		for(int i=0;i<data.size();i++)
@@ -64,10 +87,16 @@ class QuickForm : public FDialog
 			}
 			
 		}
-
-		void cb_quit (FWidget*, FDataPtr)
+		void cb_exit(FWidget*, FDataPtr)
 		{
-			 data->erase(data->begin(),data->end());
+		close();
+		 //this->quit();
+		}
+
+		void cb_save_and_exit (FWidget*, FDataPtr)
+		{
+			this->update_record();
+			data->erase(data->begin(),data->end());
 			for(int i=0;i<this->records_tabel.size();i++){
 					std::string helper="";
 				for(int j=0;j<this->records_tabel[i].size();j++)
@@ -77,65 +106,93 @@ class QuickForm : public FDialog
 			//std::cerr<<helper<<"\nHellaw\n";
 			this->data->push_back(helper);
 				}
-			this->quit();
+		this->close();
 		}
+		
 		void update_record()
 		{
 		  for(int i=0;i<this->Fields_vctr.size();i++)
 				{
-			this->records_tabel[this->active_record][i]=this->Fields_vctr[i]->getText().toString();
-//			std::cerr<<this->Fields_vctr[i]->getText()<<i<<" : ";
-			}
+				this->records_tabel[this->active_record][i]=this->Fields_vctr[i]->getText().toString();
+				}
 		}
-		void cb_next (FWidget*, FDataPtr){
+
+		void cb_first (FWidget*, FDataPtr)
+		{
+			this->update_record();
+			this->active_record = 0;
+			this->recnumber.setText(std::to_string(active_record)+"|"+std::to_string(total_records));
+			this->clear_FLineEdits();
+			this->create_FLineEdits(this->records_tabel[this->active_record]);
+		}
+		void cb_next (FWidget*, FDataPtr)
+		{
 			this->update_record();
 			if (this->active_record < this->total_records)	this->active_record++;
+			this->recnumber.setText(std::to_string(active_record)+"|"+std::to_string(total_records));
+			this->clear_FLineEdits();
+			this->create_FLineEdits(this->records_tabel[this->active_record]);
+		}
+		void cb_last (FWidget*, FDataPtr)
+		{
+			this->update_record();
+			this->active_record = this->total_records;
+			this->recnumber.setText(std::to_string(active_record)+"|"+std::to_string(total_records));
 			this->clear_FLineEdits();
 			this->create_FLineEdits(this->records_tabel[this->active_record]);
 		}
 
-		void cb_prev (FWidget*, FDataPtr){
+		void cb_prev (FWidget*, FDataPtr)
+		{
 			this->update_record();
 			if (this->active_record > 0)this->active_record--;
+			this->recnumber.setText(std::to_string(active_record)+"|"+std::to_string(total_records));
 			this->clear_FLineEdits();
 			this->create_FLineEdits(this->records_tabel[this->active_record]);
 		}
-
+		void onClose( finalcut::FCloseEvent *ev)
+		{
+		  finalcut::FApplication::closeConfirmationDialog(this,ev);
+		}
 		void create_FLineEdits(std::vector<std::string> record)
-			{
+		{
 			int active_posy = 0;
 			int active_posx = posx;
-				try {
-			for(int i=0;i< record.size();i++){
-				FLineEdit* field  = new FLineEdit{record[i],this};
-				int active_posy = (i*(this->vpadding+this->height)+this->posy);
-					if (active_posy > this->form_height) {throw std::range_error("To many fields for the Form");}
-
-					field->setGeometry(FPoint(this->posx,active_posy),FSize(20,1));
-				    
-			//		field->setLabelText(record[i]);
+			try
+			{
+				for(int i=0;i< record.size();i++)
+				{
+					FLineEdit* field  = new FLineEdit{record[i],this};
+					int fieldsize = record[i].length();
+					if (fieldsize < this->min_fieldsize) fieldsize = this->min_fieldsize;
+					if (fieldsize > this->max_fieldsize) fieldsize = this->max_fieldsize;
+					int active_posy = (i*(this->vpadding+this->height)+this->posy);
+					if (active_posy > this->form_height) {throw std::range_error("Too many fields for the Form");}
+					field->setGeometry(FPoint(this->posx,active_posy),FSize(fieldsize,1));
 					field->redraw();
 					this->Fields_vctr.push_back(field);
 				}
-				}
-				catch( std::range_error& e)
-				{
-				std::cerr<<e.what();
-				this->quit();
-				}
+			}
+			catch( std::range_error& e)
+			{
+			std::cerr<<e.what();
+			this->quit();
+			}
 				
 			this->redraw();
 			this->show();
 			
-			}
+		}
+
 		void clear_FLineEdits()
+		{
+			for(int i=0;i < this->Fields_vctr.size();i++)
 			{
-			for(int i=0;i < this->Fields_vctr.size();i++){
-					this->Fields_vctr[i]->clear();
+				this->Fields_vctr[i]->clear();
 				this->Fields_vctr[i]->hide();
-				}
-			 Fields_vctr.erase(Fields_vctr.begin(),Fields_vctr.end());
 			}
+			Fields_vctr.erase(Fields_vctr.begin(),Fields_vctr.end());
+		}
 };
 
 std::vector<std::string>readData(std::istream& in)
@@ -152,7 +209,7 @@ std::vector<std::string> processparameters(const int& argc, char** argv)
 	{
 	if( argc > 1)
 		{
-				std::ifstream ifile(argv[1]);
+			std::ifstream ifile(argv[1]);
 			if (ifile)
 				{
 				 return readData(ifile);
@@ -182,7 +239,7 @@ int main (int argc, char* argv[])
 	argc = 0;
 	argv = nullptr;
 	int fd_stdin{fileno(stdin)};
-//	std::cerr<<fd_stdin<<"fd stdin \n";
+	if (isatty(fd_stdin)){std::cout<<"Teste atty";}
 	close(fd_stdin);
 	fd_stdin = open("/dev/tty",O_RDWR);
 	int stdoutBack = dup(1);
