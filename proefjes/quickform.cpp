@@ -1,10 +1,11 @@
 #include <final/final.h>
 #include <regex>
-#include <string>
 #include <fstream>
-#include <iostream>
 
 using namespace finalcut;
+
+std::string destination{};
+std::string source{};
 
 class QuickForm : public FDialog
 {
@@ -232,14 +233,62 @@ int init (int argc, char* argv[], std::vector<std::string>*v)
 	return app.exec();
 }
 
+void usage()
+{
+std::cout<<"Usage : quickform [-i inputfile -o outputfile -D delimeter]\n \
+if -o option is ommitted sents output to stdout \n \
+Example cat inputfile | quickform > outputfile: takes stdin and outputs to stdout\n \
+-D delimiter is default whitespaces regex s+ \n ";
+}
+void cmd_options(const int& argc, char* argv[])
+{
+	//Interpret command line options
+	const char* const short_options ="o:i";
+	static struct option long_options[] =
+	{
+	 {C_STR("destination"),	required_argument,nullptr,'o'},
+	 {C_STR("source"),	required_argument,nullptr,'i'}
+	};
+	while (true)
+	{
+	 const auto opt = getopt_long(argc,argv,short_options,long_options,nullptr);
+
+		if (-1 == opt) break;
+		switch (opt)
+		{
+		case 'o':
+			std::cout<< "Destination is:" << optarg;
+			destination = optarg;
+			break;
+		case 'i':
+			std::cout<< "Input is: "<< optarg;
+			source = optarg;
+			break;
+		case 'h':
+		case '?':
+		default:
+			usage();
+			exit(1);
+		}	
+
+	}
+	
+}
+
+
 int main (int argc, char* argv[])
 {
+	cmd_options(argc,argv);
+	if (destination == "") std::cout<<"\nempty destination\n";
+	if (source == "") std::cout<<"\nempty source\n" ;
 	std::vector<std::string>v {};
-	v = processparameters(argc,argv); 
 	argc = 0;
 	argv = nullptr;
 	int fd_stdin{fileno(stdin)};
-	if (isatty(fd_stdin)){std::cout<<"Teste atty";}
+	if (isatty(fd_stdin) || argc < 1) //if no input exit and return usage 
+	{usage();
+	 return 1;}
+	v = processparameters(argc,argv); 
 	close(fd_stdin);
 	fd_stdin = open("/dev/tty",O_RDWR);
 	int stdoutBack = dup(1);
@@ -251,5 +300,4 @@ int main (int argc, char* argv[])
 	return 0 ;
 
 }
-
 
