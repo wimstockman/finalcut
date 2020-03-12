@@ -6,6 +6,7 @@ using namespace finalcut;
 
 std::string destination{};
 std::string source{};
+std::string delimiter{"\\s+"};
 
 class QuickForm : public FDialog
 {
@@ -206,6 +207,21 @@ std::vector<std::string>readData(std::istream& in)
 			}
 		return v;
 	}
+int writeData(std::vector<std::string>*v)
+	{
+	if (destination != "")
+	{ 
+		std::ofstream outputfile;
+  		outputfile.open (destination);
+		for_each(v->begin(),v->end(),[&outputfile](std::string &s){ outputfile<<s<<"\n";});
+  		outputfile.close();
+	}
+	else
+	{
+		for_each(v->begin(),v->end(),[](std::string &s){ std::cout<<s<<"\n";});
+	}
+  	return 0;	
+	}
 std::vector<std::string> processparameters(const int& argc, char** argv)
 	{
 	if( argc > 1)
@@ -247,7 +263,8 @@ void cmd_options(const int& argc, char* argv[])
 	static struct option long_options[] =
 	{
 	 {C_STR("destination"),	required_argument,nullptr,'o'},
-	 {C_STR("source"),	required_argument,nullptr,'i'}
+	 {C_STR("source"),	required_argument,nullptr,'i'},
+	 {0,0,0,0}
 	};
 	while (true)
 	{
@@ -279,13 +296,9 @@ void cmd_options(const int& argc, char* argv[])
 int main (int argc, char* argv[])
 {
 	cmd_options(argc,argv);
-	if (destination == "") std::cout<<"\nempty destination\n";
-	if (source == "") std::cout<<"\nempty source\n" ;
 	std::vector<std::string>v {};
-	argc = 0;
-	argv = nullptr;
 	int fd_stdin{fileno(stdin)};
-	if (isatty(fd_stdin) || argc < 1) //if no input exit and return usage 
+	if (isatty(fd_stdin) || argc < 1) //if no input exists, exit and return usage 
 	{usage();
 	 return 1;}
 	v = processparameters(argc,argv); 
@@ -296,7 +309,7 @@ int main (int argc, char* argv[])
 	int output = open("/dev/tty",O_RDWR);
 	init(argc,argv,&v);
 	dup2(stdoutBack,1);
-	for_each(v.begin(),v.end(),[](std::string &s){ std::cout<<s<<"\n";});
+	writeData(&v);
 	return 0 ;
 
 }
