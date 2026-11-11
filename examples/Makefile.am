@@ -41,6 +41,7 @@ noinst_PROGRAMS = \
 	mouse \
 	opti-move \
 	parallax-scrolling \
+	pickedit \
 	rotozoomer \
 	scrollview \
 	string-operations \
@@ -80,6 +81,7 @@ menu_SOURCES = menu.cpp
 mouse_SOURCES = mouse.cpp
 opti_move_SOURCES = opti-move.cpp
 parallax_scrolling_SOURCES = parallax-scrolling.cpp
+pickedit_SOURCES = pickedit.cpp
 rotozoomer_SOURCES = rotozoomer.cpp
 scrollview_SOURCES = scrollview.cpp
 string_operations_SOURCES = string-operations.cpp
