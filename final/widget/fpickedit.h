@@ -91,6 +91,7 @@ class FPickEdit : public FWidget
     void setChoices (const std::vector<Choice>&);
 
   protected:
+    void onFocusIn (FFocusEvent*) override;
     void onMouseDown (FMouseEvent*) override;
 
   private:

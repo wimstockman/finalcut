@@ -192,6 +192,14 @@ FPickEdit::FPickEdit (finalcut::FWidget* parent)
 FPickEdit::~FPickEdit() noexcept = default;
 
 //----------------------------------------------------------------------
+void FPickEdit::onFocusIn (FFocusEvent* ev)
+{
+  FWidget::onFocusIn (ev);
+  // The composite has nothing to type into: the focus goes to the text field
+  edit.setFocus();
+}
+
+//----------------------------------------------------------------------
 void FPickEdit::setGeometry (const finalcut::FPoint& pos,
                             const finalcut::FSize& size, bool adjust)
 {
