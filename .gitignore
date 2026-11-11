@@ -57,6 +57,7 @@ examples/cartesian_graph
 examples/checklist
 examples/choice
 examples/date-dialog
+examples/pickedit
 examples/dialog
 examples/event-log
 examples/eventloop
