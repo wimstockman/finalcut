@@ -87,6 +87,7 @@ libfinal_la_SOURCES = \
 	widget/flineedit.cpp \
 	widget/flistbox.cpp \
 	widget/flistview.cpp \
+	widget/fpickedit.cpp \
 	widget/fprogressbar.cpp \
 	widget/fradiobutton.cpp \
 	widget/fscrollbar.cpp \
@@ -208,6 +209,7 @@ finalcutwidgetinclude_HEADERS = \
 	widget/flineedit.h \
 	widget/flistbox.h \
 	widget/flistview.h \
+	widget/fpickedit.h \
 	widget/fprogressbar.h \
 	widget/fradiobutton.h \
 	widget/fscrollbar.h \

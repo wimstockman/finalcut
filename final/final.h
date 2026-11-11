@@ -93,6 +93,7 @@
 #include <final/widget/flineedit.h>
 #include <final/widget/flistbox.h>
 #include <final/widget/flistview.h>
+#include <final/widget/fpickedit.h>
 #include <final/widget/fprogressbar.h>
 #include <final/widget/fradiobutton.h>
 #include <final/widget/fscrollbar.h>
